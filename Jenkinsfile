@@ -44,10 +44,15 @@ pipeline {
        reuseNode true
       }
      }
-     steps {
-      sh " mvn sonar:sonar -Dsonar.host.url=$SONARQUBE_URL:$SONARQUBE_PORT"
-     }
-    
+     
+    steps {
+           sh " mvn sonar:sonar \
+           -Dsonar.projectKey=pipeline \
+           -Dsonar.sources=. \
+           -Dsonar.css.node=. \
+           -Dsonar.host.url=http://172.17.128.1:9000 \
+           -Dsonar.login=921861c2809a865d1da4562702c4300f53409ea4 "
+          }
  
    post {
     always {
