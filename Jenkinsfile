@@ -51,8 +51,7 @@ pipeline {
      }
      steps {
       sh ' mvn checkstyle:checkstyle'
-      step([
-       defaultEncoding: '',
+      step([defaultEncoding: '',
        healthy: '100',
        pattern: '**/target/checkstyle-result.xml',
        unHealthy: '90',
