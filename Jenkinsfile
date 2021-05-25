@@ -1,5 +1,3 @@
-
----Version 1 ---- SCM / Build
 pipeline {
  agent any
  environment {
