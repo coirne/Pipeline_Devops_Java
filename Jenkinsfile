@@ -35,8 +35,7 @@ pipeline {
       sh ' mvn clean compile'
      }
     }
-
-  stage('Code Quality Analysis') {
+  
     stage('SonarQube') {
      agent {
       docker {
@@ -49,7 +48,7 @@ pipeline {
       sh " mvn sonar:sonar -Dsonar.host.url=$SONARQUBE_URL:$SONARQUBE_PORT"
      }
     }
-   }
+   
    post {
     always {
      // using warning next gen plugin
