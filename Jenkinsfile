@@ -35,7 +35,8 @@ pipeline {
       sh ' mvn clean compile'
      }
     }
-  stage('Unit Tests') {
+
+  stage('Integration Tests') {
    agent {
     docker {
      image 'maven:3.6.0-jdk-8-alpine'
@@ -44,13 +45,20 @@ pipeline {
     }
    }
    steps {
-    sh 'mvn test'
+    sh 'mvn verify -Dsurefire.skip=true'
    }
    post {
     always {
-     junit 'target/surefire-reports/**/*.xml'
+     junit 'target/failsafe-reports/**/*.xml'
+    }
+    success {
+     stash(name: 'artifact', includes: 'target/*.war')
+     stash(name: 'pom', includes: 'pom.xml')
+     // to add artifacts in jenkins pipeline tab (UI)
+     archiveArtifacts 'target/*.war'
     }
    }
   }
+
  }
  }
