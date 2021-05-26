@@ -37,34 +37,6 @@
     }
   
   stage('Code Quality Analysis') {
-   parallel {
-    stage('PMD') {
-     agent {
-      docker {
-       image 'maven:3.6.0-jdk-8-alpine'
-       args '-v /root/.m2/repository:/root/.m2/repository'
-       reuseNode true
-      }
-     }
-     steps {
-      sh ' mvn pmd:pmd'
-     }
-    }
-
-    stage('Findbugs') {
-     agent {
-      docker {
-       image 'maven:3.6.0-jdk-8-alpine'
-       args '-v /root/.m2/repository:/root/.m2/repository'
-       reuseNode true
-      }
-     }
-     steps {
-      sh ' mvn findbugs:findbugs'
-     }
-    }
-
-    stage('JavaDoc') {
      agent {
       docker {
        image 'maven:3.6.0-jdk-8-alpine'
@@ -75,12 +47,10 @@
      steps {
       sh ' mvn javadoc:javadoc'
      }
-    }
-   }
    post {
     always {
      // using warning next gen plugin
-     recordIssues aggregatingResults: true, tools: [javaDoc(), checkStyle(pattern: '**/target/checkstyle-result.xml'), findBugs(pattern: '**/target/findbugsXml.xml', useRankAsPriority: true), pmdParser(pattern: '**/target/pmd.xml')]
+     recordIssues aggregatingResults: true, tools: [javaDoc(javadocDir: './target/site/apidocs', keepAll: 'true'), checkStyle(pattern: '**/target/checkstyle-result.xml'), findBugs(pattern: '**/target/findbugsXml.xml', useRankAsPriority: true), pmdParser(pattern: '**/target/pmd.xml')]
     }
    }
   }
