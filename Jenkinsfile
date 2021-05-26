@@ -11,7 +11,7 @@ pipeline {
   NEXUS_REPOSITORY = "maven-snapshots"
   // Jenkins credential id to authenticate to Nexus OSS
   NEXUS_CREDENTIAL_ID = "nexus-credentials"
-  SONARQUBE_URL = "http://192.168.208.1"
+  SONARQUBE_URL = "http://172.17.128.1"
   SONARQUBE_PORT = "9000"
  }
  options {
@@ -35,29 +35,22 @@ pipeline {
       sh ' mvn clean compile'
      }
     }
-  
-    stage('SonarQube') {
-     agent {
-      docker {
-       image 'maven:3.6.0-jdk-8-alpine'
-       args "-v /root/.m2/repository:/root/.m2/repository"
-       reuseNode true
-      }
-     }
-     
-    steps {
-           sh " mvn sonar:sonar \
-               -Dsonar.projectKey=java \
-               -Dsonar.host.url=http://192.168.208.1:9000 \
-               -Dsonar.login=fe32b42c06d825e61b4e78970dcfccc653d4c324"
-          }
- 
+  stage('Unit Tests') {
+   agent {
+    docker {
+     image 'maven:3.6.0-jdk-8-alpine'
+     args '-v /root/.m2/repository:/root/.m2/repository'
+     reuseNode true
+    }
+   }
+   steps {
+    sh 'mvn test'
+   }
    post {
     always {
-     // using warning next gen plugin
-     recordIssues aggregatingResults: true, tools: [javaDoc(), checkStyle(pattern: '**/target/checkstyle-result.xml'), findBugs(pattern: '**/target/findbugsXml.xml', useRankAsPriority: true), pmdParser(pattern: '**/target/pmd.xml')]
+     junit 'target/surefire-reports/**/*.xml'
     }
    }
   }
  }
-}
+ }
