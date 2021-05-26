@@ -37,9 +37,6 @@ pipeline {
     }
 
   stage('Integration Tests') {
-   when {
-    anyOf { branch 'master'; branch 'develop' }
-   }
    agent {
     docker {
      image 'maven:3.6.0-jdk-8-alpine'
