@@ -157,7 +157,7 @@ stage('Code Quality Analysis') {
                -Dsonar.host.url=http://192.168.208.1:9000 \
                -Dsonar.login=fe32b42c06d825e61b4e78970dcfccc653d4c324"
           }
-
+    }
    }
    post {
     always {
@@ -166,7 +166,7 @@ stage('Code Quality Analysis') {
     }
    }
   }
-}
+
 
 
 stage('Deploy Artifact To Nexus') {
@@ -247,3 +247,10 @@ stage('Deploy Artifact To Nexus') {
   
   }
   }
+ 
+
+
+
+
+
+  
