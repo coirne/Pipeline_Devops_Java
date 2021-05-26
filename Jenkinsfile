@@ -23,18 +23,60 @@ pipeline {
     checkout scm
    }
   }
+  
   stage('Build') {
-    agent {
-     docker {
-      image 'maven:3.6.0-jdk-8-alpine'
-      args '-v /root/.m2/repository:/root/.m2/repository'
-      reuseNode true
+   parallel {
+    stage('Compile') {
+     agent {
+      docker {
+       image 'maven:3.6.0-jdk-8-alpine'
+       args '-v /root/.m2/repository:/root/.m2/repository'
+       reuseNode true
       }
      }
      steps {
       sh ' mvn clean compile'
      }
     }
+    stage('CheckStyle') {
+     agent {
+      docker {
+       image 'maven:3.6.0-jdk-8-alpine'
+       args '-v /root/.m2/repository:/root/.m2/repository'
+       reuseNode true
+      }
+    }
+    steps {
+      sh ' mvn checkstyle:checkstyle'
+    }
+    post {
+    always {
+     // using warning next gen plugin
+     recordIssues aggregatingResults: true, tools: [javaDoc(), checkStyle(pattern: '**/target/checkstyle-result.xml'), findBugs(pattern: '**/target/findbugsXml.xml', useRankAsPriority: true), pmdParser(pattern: '**/target/pmd.xml')]
+      }
+     }
+    }
+   }
+  }
+
+
+  stage('Unit Tests') {
+   agent {
+    docker {
+     image 'maven:3.6.0-jdk-8-alpine'
+     args '-v /root/.m2/repository:/root/.m2/repository'
+     reuseNode true
+    }
+   }
+   steps {
+    sh 'mvn test'
+   }
+   post {
+    always {
+     junit 'target/surefire-reports/**/*.xml'
+    }
+   }
+  }
 
   stage('Integration Tests') {
    agent {
@@ -58,7 +100,75 @@ pipeline {
     }
    }
   }
-  
+
+stage('Code Quality Analysis') {
+   parallel {
+    stage('PMD') {
+     agent {
+      docker {
+       image 'maven:3.6.0-jdk-8-alpine'
+       args '-v /root/.m2/repository:/root/.m2/repository'
+       reuseNode true
+      }
+     }
+     steps {
+      sh ' mvn pmd:pmd'
+     }
+    }
+
+    stage('Findbugs') {
+     agent {
+      docker {
+       image 'maven:3.6.0-jdk-8-alpine'
+       args '-v /root/.m2/repository:/root/.m2/repository'
+       reuseNode true
+      }
+     }
+     steps {
+      sh ' mvn findbugs:findbugs'
+     }
+    }
+
+    stage('JavaDoc') {
+     agent {
+      docker {
+       image 'maven:3.6.0-jdk-8-alpine'
+       args '-v /root/.m2/repository:/root/.m2/repository'
+       reuseNode true
+      }
+     }
+     steps {
+      sh ' mvn javadoc:javadoc'
+     }
+    }
+
+    stage('SonarQube') {
+     agent {
+      docker {
+       image 'maven:3.6.0-jdk-8-alpine'
+       args "-v /root/.m2/repository:/root/.m2/repository"
+       reuseNode true
+      }
+     }
+     
+    steps {
+           sh " mvn sonar:sonar \
+               -Dsonar.projectKey=java \
+               -Dsonar.host.url=http://192.168.208.1:9000 \
+               -Dsonar.login=fe32b42c06d825e61b4e78970dcfccc653d4c324"
+          }
+
+   }
+   post {
+    always {
+     // using warning next gen plugin
+     recordIssues aggregatingResults: true, tools: [javaDoc(javadocDir: './target/site/apidocs', keepAll: 'true'), checkStyle(pattern: '**/target/checkstyle-result.xml'), findBugs(pattern: '**/target/findbugsXml.xml', useRankAsPriority: true), pmdParser(pattern: '**/target/pmd.xml')]
+    }
+   }
+  }
+}
+
+
 stage('Deploy Artifact To Nexus') {
    steps {
     script {
@@ -134,6 +244,6 @@ stage('Deploy Artifact To Nexus') {
     }
    }
   }
-
+  
   }
   }
