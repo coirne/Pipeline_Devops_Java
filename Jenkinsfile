@@ -11,7 +11,7 @@ pipeline {
   NEXUS_REPOSITORY = "maven-snapshots"
   // Jenkins credential id to authenticate to Nexus OSS
   NEXUS_CREDENTIAL_ID = "nexus-credentials"
-  SONARQUBE_URL = "http://172.17.128.1"
+  SONARQUBE_URL = "http://192.168.208.1"
   SONARQUBE_PORT = "9000"
  }
  options {
@@ -47,11 +47,9 @@ pipeline {
      
     steps {
            sh " mvn sonar:sonar \
-           -Dsonar.projectKey=pipeline \
-           -Dsonar.sources=. \
-           -Dsonar.css.node=. \
-           -Dsonar.host.url=http://172.17.128.1:9000 \
-           -Dsonar.login=921861c2809a865d1da4562702c4300f53409ea4 "
+               -Dsonar.projectKey=java \
+               -Dsonar.host.url=http://192.168.208.1:9000 \
+               -Dsonar.login=fe32b42c06d825e61b4e78970dcfccc653d4c324"
           }
  
    post {
