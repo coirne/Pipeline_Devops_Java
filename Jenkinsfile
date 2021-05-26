@@ -1,4 +1,4 @@
-pipeline {
+ pipeline {
  agent any
  environment {
   // This can be nexus3 or nexus2
@@ -6,7 +6,7 @@ pipeline {
   // This can be http or https
   NEXUS_PROTOCOL = "http"
   // Where your Nexus is running. In my case:
-  NEXUS_URL = "172.27.208.1:8081"
+  NEXUS_URL = "192.168.208.1:8081"
   // Repository where we will upload the artifact
   NEXUS_REPOSITORY = "maven-snapshots"
   // Jenkins credential id to authenticate to Nexus OSS
@@ -36,19 +36,47 @@ pipeline {
      }
     }
   
-  stage('PMD') {
-    agent {
-    docker {
-      image 'maven:3.6.0-jdk-8-alpine'
-      args '-v /root/.m2/repository:/root/.m2/repository'
-      reuseNode true
+  stage('Code Quality Analysis') {
+   parallel {
+    stage('PMD') {
+     agent {
+      docker {
+       image 'maven:3.6.0-jdk-8-alpine'
+       args '-v /root/.m2/repository:/root/.m2/repository'
+       reuseNode true
       }
      }
      steps {
       sh ' mvn pmd:pmd'
      }
-    
- 
+    }
+
+    stage('Findbugs') {
+     agent {
+      docker {
+       image 'maven:3.6.0-jdk-8-alpine'
+       args '-v /root/.m2/repository:/root/.m2/repository'
+       reuseNode true
+      }
+     }
+     steps {
+      sh ' mvn findbugs:findbugs'
+     }
+    }
+
+    stage('JavaDoc') {
+     agent {
+      docker {
+       image 'maven:3.6.0-jdk-8-alpine'
+       args '-v /root/.m2/repository:/root/.m2/repository'
+       reuseNode true
+      }
+     }
+     steps {
+      sh ' mvn javadoc:javadoc'
+     }
+    }
+   }
    post {
     always {
      // using warning next gen plugin
